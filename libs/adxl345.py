@@ -2,6 +2,9 @@ from machine import Pin, I2C
 import time
 import ustruct
 import math
+import micropython
+
+micropython.alloc_emergency_exception_buf(100) # Neccesary for raising exceptions during interruptions
  
 # Constants
 ADXL345_ID = 0x53 # The I2C ID address
@@ -13,6 +16,7 @@ ADXL345_DATAX0 = 0x32
 ADXL345_THRESH_ACT = 0x24
 ADXL345_INT_ENABLE = 0x2E
 ADXL345_INT_SOURCE = 0x30
+ADXL345_ACT_INACT_CTL = 0x27
 
 
 # Initialize I2C
@@ -33,9 +37,10 @@ def init_adxl345():
     write_adxl(ADXL345_DATA_FORMAT, bytearray([0x09])) # Full resolution; 0x09 for +-4g; 0x0B for +/- 16g
     write_adxl(ADXL345_POWER_CTL, bytearray([0x08])) # Set bit 3 to 1 to enable measurement mode
     #write_adxl(ADXL345_BW_RATE, bytearray([0x19])) # Set low power mode and ODR to 50Hz
-    write_adxl(ADXL345_BW_RATE, bytearray([0x18])) # Set low power mode and ODR to 25Hz
+    write_adxl(ADXL345_BW_RATE, bytearray([0x16])) # Set low power mode and ODR to 25Hz
     write_adxl(ADXL345_THRESH_ACT, bytearray([0x07])) # 62.5 mg/LSB -> triggers at 0,4375g
     write_adxl(ADXL345_INT_ENABLE, bytearray([0x10])) # Enable Activity interrumption
+    write_adxl(ADXL345_ACT_INACT_CTL, bytearray([0xE0])) # Activity ac mode, enable only XY axis for detection
     
 # Read acceleration data
 def read_accel_data(raw=False):
@@ -61,8 +66,9 @@ def calc_pitch(x, y, z):
 
 pin = Pin(23, Pin.IN)
 def handle_interrupt(pin):
-    pir.irq(trigger=Pin.IRQ_RISING, handler=handle_interrupt)
     print("INT MADE")
+    
+pin.irq(trigger=Pin.IRQ_RISING, handler=handle_interrupt)
 
 
 # Main loop
@@ -73,4 +79,4 @@ while True:
     roll = calc_roll(x, y, z)
     pitch = calc_pitch(x, y, z)
     print("X: {:.1f}g, Y: {:.1f}g, Z: {:.1f}g, Magnitude: {:.2f}g, Roll: {:.2f}, Pitch: {:.2f}".format(x, y, z, magnitude, roll, pitch))
-    time.sleep(0.1)
+    time.sleep(0.6)
