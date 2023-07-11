@@ -37,14 +37,14 @@ def init_adxl345():
     write_adxl(ADXL345_DATA_FORMAT, bytearray([0x09])) # Full resolution; 0x09 for +-4g; 0x0B for +/- 16g
     write_adxl(ADXL345_POWER_CTL, bytearray([0x08])) # Set bit 3 to 1 to enable measurement mode
     #write_adxl(ADXL345_BW_RATE, bytearray([0x19])) # Set low power mode and ODR to 50Hz
-    write_adxl(ADXL345_BW_RATE, bytearray([0x16])) # Set low power mode and ODR to 25Hz
+    write_adxl(ADXL345_BW_RATE, bytearray([0x18])) # Set low power mode and ODR to 25Hz
     write_adxl(ADXL345_THRESH_ACT, bytearray([0x07])) # 62.5 mg/LSB -> triggers at 0,4375g
     write_adxl(ADXL345_INT_ENABLE, bytearray([0x10])) # Enable Activity interrumption
     write_adxl(ADXL345_ACT_INACT_CTL, bytearray([0xE0])) # Activity ac mode, enable only XY axis for detection
     
 # Read acceleration data
 def read_accel_data(raw=False):
-    read_adxl(ADXL345_INT_SOURCE, 1) # Clear interruption flags? or does normal read already do that
+    read_adxl(ADXL345_INT_SOURCE, 1) # Clear interruption flags
     data = read_adxl(ADXL345_DATAX0, 6)
     x, y, z = ustruct.unpack('<3h', data)
     if raw:
@@ -64,13 +64,13 @@ def calc_roll(x, y, z):
 def calc_pitch(x, y, z):
     return math.atan2(-x, math.sqrt(y**2 + z**2)) * (180 / math.pi)
 
-pin = Pin(23, Pin.IN)
+pin = Pin(4, Pin.IN)
 def handle_interrupt(pin):
     print("INT MADE")
     
 pin.irq(trigger=Pin.IRQ_RISING, handler=handle_interrupt)
 
-
+"""
 # Main loop
 init_adxl345()
 while True:
@@ -79,4 +79,5 @@ while True:
     roll = calc_roll(x, y, z)
     pitch = calc_pitch(x, y, z)
     print("X: {:.1f}g, Y: {:.1f}g, Z: {:.1f}g, Magnitude: {:.2f}g, Roll: {:.2f}, Pitch: {:.2f}".format(x, y, z, magnitude, roll, pitch))
-    time.sleep(0.6)
+    time.sleep(0.5)
+"""
