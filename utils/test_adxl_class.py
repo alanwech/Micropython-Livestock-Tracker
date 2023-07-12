@@ -5,10 +5,8 @@ from machine import Pin
 def handle_interrupt(pin):
     print("INT MADE")
 
-
 pin = Pin(4, Pin.IN)
 pin.irq(trigger=Pin.IRQ_RISING, handler=handle_interrupt)
-
 
 # Example usage
 accelerometer = ADXL345(sda_pin=21, scl_pin=22)

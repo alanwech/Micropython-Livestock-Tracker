@@ -37,7 +37,7 @@ class ADXL345:
         self.write_register(self.int_enable, bytearray([0x10]))  # Enable Activity interruption
         self.write_register(self.act_inact_ctl, bytearray([0xE0]))  # Activity ac mode, enable only XY axis for detection
 
-    def get_int_source(self):
+    def get_int_source(self): # Returns bytearray, can be converted using struct.unpack('B', data)[0] then data & 0b00010000 to check any of the flags
         return self.read_register(self.int_source, 1) # Clears interruption flags
     
     def get_accel_data(self, raw=False):
@@ -62,28 +62,3 @@ class ADXL345:
     # Calculate pitch angle in degrees
     def calc_pitch(x, y, z):
         return math.atan2(-x, math.sqrt(y ** 2 + z ** 2)) * (180 / math.pi)
-
-
-"""
-# Interrupt example
-def handle_interrupt(pin):
-    print("INT MADE")
-
-
-pin = Pin(4, Pin.IN)
-pin.irq(trigger=Pin.IRQ_RISING, handler=handle_interrupt)
-
-
-# Example usage
-accelerometer = ADXL345(sda_pin=21, scl_pin=22)
-accelerometer.init()
-
-while True:
-    x, y, z = accelerometer.read_accel_data()
-    magnitude = accelerometer.calc_accel_magnitude(x, y, z)
-    roll = accelerometer.calc_roll(x, y, z)
-    pitch = accelerometer.calc_pitch(x, y, z)
-    print("X: {:.1f}g, Y: {:.1f}g, Z: {:.1f}g, Magnitude: {:.2f}g, Roll: {:.2f}, Pitch: {:.2f}".format(
-        x, y, z, magnitude, roll, pitch))
-    time.sleep(0.5)
-"""
