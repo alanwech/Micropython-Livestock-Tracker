@@ -13,7 +13,7 @@ class Neo6GPS:
     def __str__(self):
         self.read_raw_data()
         self.update_gps_data()
-        return f'Latitude: {self.get_latitude()}\nLongitude: {self.get_longitude()}\nSpeed [km/h]: {self.get_speed()}\nTimestamp (Epoch 2000): {self.get_timestamp()}'
+        return f'Latitude: {self.get_latitude()} Longitude: {self.get_longitude()} Speed [km/h]: {self.get_speed()}\nTimestamp (Epoch 2000): {self.get_timestamp()}\n'
 
     def read_raw_data(self):
         try:
@@ -25,11 +25,11 @@ class Neo6GPS:
         for char in self.raw_data:
             self.my_gps.update(char)
 
-    def get_latitude(self):
-        return self.my_gps.latitude
+    def get_latitude(self): # [degrees, N/S] convert to decimal degrees
+        return self.my_gps.latitude[0] if self.my_gps.latitude[1] == 'N' else -self.my_gps.latitude[0]
 
-    def get_longitude(self):
-        return self.my_gps.longitude
+    def get_longitude(self): # [degrees, E/W] convert to decimal degrees
+        return self.my_gps.longitude[0] if self.my_gps.longitude[1] == 'E' else -self.my_gps.longitude[0]
 
     def get_speed(self):
         return self.my_gps.speed[2]

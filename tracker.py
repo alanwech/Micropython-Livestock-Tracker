@@ -2,7 +2,8 @@
 from machine import Pin, I2C, deepsleep, lightsleep # active 90~240 mA, active-no-modem (not implemented?) 25~50 mA, lightsleep 0.8 mA, deepsleep 0.15 mA
 from adxl345_class import ADXL345
 from neo6gps_class import Neo6GPS
-import time, struct, esp32, network, requests
+import time, struct, esp32, network, urequests
+from config import *
 
 def wifi_connect():
     sta_if = network.WLAN(network.STA_IF)
@@ -38,7 +39,7 @@ print("Wake up pin initialized on pin 4")
 
 # Setup the deep sleep time
 #ds_time = 10 * 60 * 1000 # 10 minutes
-ds_time = 10 * 1000 # 10 seconds
+ds_time = 15 * 1000 # 15 seconds
 led = Pin (2, Pin.OUT) # Used for knowing when it's awake
 
 while (True):
@@ -53,15 +54,17 @@ while (True):
         if wifi_connect():
             # load data to influxdb using requests, the timestamp should be custom
             print("Attempting to load data to influxdb")
-            requests.post("http://influxdb:8086/write?db=tracker", data="gps_data,device=esp32 lat={},lon={},alt={},speed={},satellites={},distance={}".format(gps_data[0], gps_data[1], gps_data[2], gps_data[3], gps_data[4], distance))
+            # It should emulate something like this "insert location,id=Vaca1 lat=-34.707692,lon=-58.270317 1689087600"
+            urequests.post("http://influxdb:8086/write?db=tracker", data=f"insert location,id={IDENTIFIER} lat={gps_data[0]},lon={gps_data[1]} {int(time.time())}")
     
     #blink LED
     led.value(1) # AWAKE
     
-    sleep(3) # ALLOWS STOPPING IN THIS TIME
+    time.sleep(3) # ALLOWS STOPPING IN THIS TIME
     #deepsleep(ds_time) # Sleep for 10 minutes or until the accelerometer detects movement
     led.value(0) # SLEEP
-    print("Going to sleep for 10 seconds or until accelerometer detects movement")
+    print("Going to sleep for 15 seconds or until accelerometer detects movement")
+    time.sleep(0.1) # Needed to print the message
     lightsleep(ds_time) # only turns modem off, cpu paused
     # check if accelerometer woke him up, the 5th bit should be 1
     
@@ -70,3 +73,4 @@ while (True):
         print("Woke up from accelerometer")
     else:
         print("Woke up from timer")
+
